@@ -1,35 +1,50 @@
 <?php
-$servername = "localhost";
-$username = "jaturaphum";
-$password = "anSt-5kle45";
-$db_name = "jaturaphum";
+require("connect_db.php");
 
-$conn = new mysqli($servername, $username, $password, $db_name);
-
-if ($conn->connect_error) {
-  die("Connection failed: " . $conn->connect_error);
+if(isset($_GET["keyword"])){
+    $keyword=$_GET["keyword"];
+}else{
+    $keyword="";
 }
 
-$sql = "SELECT id, firstname, lastname, age, sex, marry_status FROM guests";
+if($keyword!=""){
+    $sql = "SELECT id, fname, lname, age, sex, marry_status FROM guestbook WHERE fname LIKE '%$keyword%' OR lname LIKE '%$keyword%'";
+}else{
+    $sql = "SELECT id, fname, lname, age, sex, marry_status FROM guestbook";
+}
+?>
+<form action="list_people.php" method="get">
+    Search:<input type="text" name="keyword" value="<?php print($keyword);?>">
+    <input type="submit" value="Search">
+</form><br>
+<?php
 $result = $conn->query($sql);
 
 if ($result->num_rows > 0) {
+  // output data of each row
   while($row = $result->fetch_assoc()) {
-    if($row["sex"] == "man")
-        if($row["man"]>= 15)
-      echo "นาย" . $row["fistname"]. "". $row["lastname"]."<br>";
-      else {
-        echo "ด.ช".$row["fistname"]."".$row["lastname"]."<br>";
-      } else {
-        if($row["sex"] == "man")
-        if($row["man"]>= 15)
-      echo "นาย" . $row["fistname"]. "". $row["lastname"]."<br>";
-      else {
-        echo "ด.ช".$row["fistname"]."".$row["lastname"]."<br>";
-      }
+    if($row["sex"]=="M"){
+        if($row["age"]>=15){
+            echo "นาย".$row["fname"]." ".$row["lname"];
+        }
+        else{
+            echo "ด.ช.".$row["fname"]." ".$row["lname"];
+        }
+    }else{
+        if($row["age"]>=15){
+            if($row["marry_status"]=="M"){
+                echo "นาง".$row["fname"]." ".$row["lname"];
+            }else{
+                echo "น.ส.".$row["fname"]." ".$row["lname"];
+            }
+            
+        }
+        else{
+            echo "ด.ญ.".$row["fname"]." ".$row["lname"];
+        }
     }
+    echo " <a href='edit_people.php?id=".$row["id"]."'>Edit</a> <a href='delete_people.php?id=".$row["id"]."' onclick=\"return confirm('Are you sure to delete ".$row["fname"]."')\".>Delete</a><br>";
   }
-
 } else {
   echo "0 results";
 }
